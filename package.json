@@ -1,5 +1,5 @@
 {
-  "name": "game",
+  "name": "multiplayer-engine",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,6 +12,7 @@
   "dependencies": {
     "browser-stdout": "^1.3.0",
     "buffer": "^3.6.0",
+    "clone": "^1.0.2",
     "end-of-stream": "^1.1.0",
     "game-shell": "^1.3.2",
     "rtc-data-stream": "^1.0.2",
@@ -19,6 +20,7 @@
     "simple-peer": "^5.11.6"
   },
   "devDependencies": {
+    "tape": "^4.4.0",
     "wzrd": "^1.3.1"
   },
   "browser": {
