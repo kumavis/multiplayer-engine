@@ -1,0 +1,20 @@
+many owners
+many entities
+many behaviours
+
+hub-spoke over un/reliable streams
+
+
+client -> server -> peers
+
+client network output: small packets 20-30/s
+server simulates world 33/s, transmits 20/s
+
+client performs prediction + interpolation
+
+advanced: lag compensation
+advanced: client can specify lower update rate
+
+client sends actions
+server sends diffs since last acknowedged update
+or full snapshots (e.g. on start, or long delay)
