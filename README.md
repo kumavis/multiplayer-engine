@@ -1,6 +1,8 @@
 
 # generic low-latency multiplayer networking engine
 
+### status: don't use this
+
 roughly based on valve's source engine.
 
 ### network topology
