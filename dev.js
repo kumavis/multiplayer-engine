@@ -1,10 +1,10 @@
-const Server = require('./lib/server.js')
+const Server = require('./example/server.js')
 const wzrd = require('wzrd')
 const PORT = 9000
 
 // serve client app
 wzrd.http({
-  entries: [{ from: './lib/client.js', to: 'app.js' }]
+  entries: [{ from: './example/client.js', to: 'app.js' }]
 }).listen(PORT, ready)
 
 // start server

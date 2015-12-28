@@ -1,14 +1,27 @@
 TODO
 
-- [ ] use SM on frontend
-- [ ] update state transition to handle new actions (join/leave)
-- [ ] breakout into lib and example
+- [ ] sync tick
+- [ ] entity ownership control validation (?)
+
+- [x] refactor
+  I got a bit lost but made progress
+  C+S differentiate by what they broadcast and what they accept
+  need to clear up importing actionHistory for one peer vs for many
+
+ActionHistory is a SlidingWindow of actions
+ActionFrame is all actions for the frame
+ActionSet is a single clients ActionFrame
+
+- [x] use SM on frontend
+- [x] update state transition to handle new actions (join/leave)
+- [x] breakout into lib and example
 
 ### etc
 measure latency
+add interpolate delay
 interpolate
-predict
-correct
+extrapolate
+prediction error correction
 broadcast diffs since confirmed tick
 
 ? how to synchronize tick rate / avoid drift
