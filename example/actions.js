@@ -6,10 +6,10 @@ module.exports = applyActions
 function applyActions(state, actionFrame) {
   var newState = clone(state)
     
-  console.log('apply frame:', actionFrame)
+  console.log('applyActions:', actionFrame)
   for (var id in actionFrame.clients) {
     var action = actionFrame.clients[id]
-    console.log('action:', id, action)
+    if (Object.keys(action).length) console.log('action:', id, action)
     
     if (action.join) {
       newState.players[id] = generatePlayer()
@@ -43,7 +43,7 @@ function generatePlayer() {
   return {
     x: 250,
     y: 250,
-    speed: 2,
+    speed: 20,
   }
 }
 

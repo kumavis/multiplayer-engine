@@ -4,6 +4,8 @@ const extend = require('xtend')
 const Network = require('../lib/network.js')
 const StateManager = require('../lib/state-manager.js')
 const applyActions = require('./actions.js')
+const TICK_RATE = 0.3 /100
+const BROADCAST_RATE = 1 /100
 
 module.exports = Engine
 
@@ -21,7 +23,6 @@ function Engine(opts){
   
   var stateManager = self.stateManager = new StateManager(applyActions)
   stateManager.setState(initialGameState())
-  stateManager.setActionFrame(newActionFrame())
 
   //
   // networking
@@ -44,95 +45,110 @@ function Engine(opts){
     self.createActionSet({ clientId: peer.id }, { leave: true })
   })
 
-  self.network.on('message', function(peer, message){
+  network.on('message', function(peer, message){
     // console.log(peer.id+':', message)
     if (!message.type) return
     self.messages.emit(message.type, { clientId: peer.id }, message)
   })
 
+}
 
-  //
-  // loop
-  //
+Engine.prototype.start = function(){
+  const self = this
+  var stateManager = self.stateManager
 
-  setInterval(onTick, 33)
-  setInterval(broadcastUpdate, 100)
+  console.log('-- start! --')
+
+  setInterval(onTick, 1/TICK_RATE)
+  setInterval(broadcastUpdate, 1/BROADCAST_RATE)
 
   function onTick(){
     stateManager.nextTick()
     stateManager.setActionFrame(newActionFrame())
+    self.emit('tick')
     // simulate as much as possible now
     stateManager.run()
     // debug
     var gameState = stateManager.getState()
-    // console.log('step:', gameState)
-    self.emit('tick')
+    console.log('step:', gameState)
   }
 
   function broadcastUpdate() {
     self.emit('broadcast')
   }
-
 }
 
-Engine.prototype.createActionSet = function(meta, actionSet){
-  const self = this
-  var tick = self.stateManager.currentTick
-  self.importActionSet(meta, actionSet, tick)
-}
+// Engine.prototype.createActionSet = function(meta, actionSet){
+//   const self = this
+//   var tick = self.stateManager.currentTick
+//   console.log('importActionSet:', meta, tick, actionSet)
+//   self.importActionSet(meta.clientId, actionSet, tick)
+// }
 
-Engine.prototype.broadcastActionHistory = function(){
-  const self = this
-  var actionHistory = {
-    startTick: self.stateManager.currentTick,
-    actions: self.stateManager.getActionHistory(),
-  }
-  self.network.broadcast({
-    type: 'actionHistory',
-    actionHistory: actionHistory,
-  })
-  // console.log('broadcast:', actionHistory)
-}
+// Engine.prototype.broadcastNodeActionHistory = function(clientId){
+//   const self = this
+//   var actions = self.stateManager.getActionHistory()[clientId] || {}
+//   var actionHistory = {
+//     startTick: self.stateManager.currentTick,
+//     actions: actions,
+//   }
+//   self.network.broadcast({
+//     type: 'actionHistory',
+//     actionHistory: actionHistory,
+//   })
+//   // console.log('broadcast:', actionHistory)
+// }
+
+// Engine.prototype.broadcastRootActionHistory = function(){
+//   const self = this
+//   var actionHistory = {
+//     startTick: self.stateManager.currentTick,
+//     actions: self.stateManager.getActionHistory(),
+//   }
+//   self.network.broadcast({
+//     type: 'actionHistory',
+//     actionHistory: actionHistory,
+//   })
+//   // console.log('broadcast:', actionHistory)
+// }
 
 // imports an ActionHistory from a peer
-Engine.prototype.importActionHistory = function(meta, message){
-  const self = this
+Engine.prototype.importActionSetHistory = function(meta, message){
   var actionHistory = message.actionHistory
-  console.log('actionHistory:', actionHistory)
+}
+
+Engine.prototype.importActionSetHistory = function(clientId, actionHistory){
+  const self = this
+  // console.log('actionHistory:', actionHistory)
   actionHistory.actions.forEach(function eachAction(actionFrame, index){
     if (!actionFrame) return null
     var tick = actionHistory.startTick + index
-    var actionSet = actionFrame.clients[meta.clientId]
-    console.log('actionFrame:', actionFrame)
-    console.log('cliedId:', meta.clientId)
-    console.log('actionSet:', actionSet)
-    console.log('tick:', tick)
-    self.importActionSet(meta, actionSet, tick)
+    var actionSet = actionFrame.clients[clientId]
+    self.importActionSet(clientId, actionSet, tick)
   })
 }
 
 // imports an ActionSet from a peer, and adds it to the ActionFrame
-Engine.prototype.importActionSet = function(meta, action, tick){
+Engine.prototype.importActionSet = function(clientId, action, tick){
   const self = this
   
-  console.log('import - action:', action)
+  // console.log('import - action:', action)
 
   // validate actions
   if (!action) return
-  var clientId = meta.clientId
   // validate action is within sliding window
-  console.log('import - action - tick:', tick, self.stateManager.currentTick, self.stateManager.tickInWindow(tick))
+  // console.log('import - action - tick:', tick, self.stateManager.currentTick, self.stateManager.tickInWindow(tick))
   if (!self.stateManager.tickInWindow(tick)) return
   // TODO: validate entity ownership
   
   // dedupe (dont apply action already received from user for frame)
   var actionFrame = self.stateManager.getActionFrame(tick)
-  console.log('import - action - exist:', actionFrame.clients[clientId])
+  // console.log('import - action - exist:', actionFrame.clients[clientId])
   if (actionFrame.clients[clientId]) return
 
   // update action frame
   actionFrame.clients[clientId] = action
-  console.log('import action:', actionFrame.clients[clientId])
+  // console.log('import action:', actionFrame.clients[clientId])
   self.stateManager.setActionFrame(actionFrame, tick)
 }
 
@@ -154,12 +170,7 @@ Engine.prototype.importSnapshot = function(meta, message){
   var state = message.snapshot.state
   var tick = message.snapshot.tick
   self.stateManager.setState(state, tick)
-}
-
-function newActionFrame() {
-  return {
-    clients: {}
-  }
+  console.log('import snapshot:', tick)
 }
 
 function initialGameState(){

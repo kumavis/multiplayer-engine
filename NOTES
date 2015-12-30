@@ -1,8 +1,25 @@
 TODO
 
-- [ ] sync tick
-- [ ] entity ownership control validation (?)
 
+
+- [ ] send actions, not snapshot
+- [ ] merge actions (if existing, overwrite but dont erase)
+- [ ] import actions from user
+
+- [ ] sync tick
+
+Server
+* Authoritative ActionFrames
+
+Client
+* Optimistic ActionFrames
+* Authoritative ActionFrames
+
+
+- [x] set init state
+  - [x] push tick onto state?
+- [x] entity ownership control validation (?)
+  push onto stateTransFn, but do aggregate actionSets into sender
 - [x] refactor
   I got a bit lost but made progress
   C+S differentiate by what they broadcast and what they accept

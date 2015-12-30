@@ -1,14 +1,10 @@
 const GameShell = require('game-shell')
 const Network = require('../lib/network.js')
 const applyActions = require('./actions.js')
-const inherits = require('util').inherits
 const Engine = require('./engine.js')
 
 new Client()
 module.exports = Client
-
-
-inherits(Client, Engine)
 
 function Client(){
   const self = this
@@ -24,20 +20,31 @@ function Client(){
   // Networking
   //
 
-  // send action histories
-  // TODO: filter for only self
-  engine.on('broadcast', engine.broadcastActionHistory.bind(engine))
-  // import stateSnapshots
-  engine.messages.on('stateSnapshot', engine.importSnapshot.bind(engine))
-
-
-  // TODO: move to engine
-  engine.network.on('connected', function(selfId){
-    console.log('connection established.')
-    console.log('---start---')
+  // wait for first snapshot
+  engine.network.once('connected', function(selfId){
+    engine.messages.once('stateSnapshot', readyToGo)
     playerId = selfId
-    isStarted = true
   })
+
+  function readyToGo(meta, message){
+    engine.stateManager.currentTick = message.snapshot.tick
+    engine.importSnapshot(meta, message)
+    engine.importSnapshot(meta, message)
+    
+    // import stateSnapshots
+    engine.messages.on('stateSnapshot', engine.importSnapshot.bind(engine))
+    // send action histories
+    // TODO: filter for only self
+    engine.on('broadcast', engine.broadcastActionHistory.bind(engine))
+
+    // start rendering
+    shell.on('render', render)
+
+    // capture user actions locally
+    engine.on('tick', captureActions)
+
+    engine.start()
+  }
 
   //
   // Controls
@@ -52,12 +59,11 @@ function Client(){
   shell.bind('move-up', 'up', 'W')
   shell.bind('move-down', 'down', 'S')
 
-  engine.on('tick', function captureActions(){
-    if (!isStarted) return
-
+  function captureActions(){
     var meta = { clientId: playerId }
     engine.createActionSet(meta, getActions())
-  })
+    engine.stateManager.run()
+  }
 
   function getActions(){
     var actions = {}
@@ -92,13 +98,12 @@ function Client(){
   })
 
   //Render a frame
-  shell.on('render', function(frame_time) {
-    if (!isStarted) return
+  function render(deltaTime) {
     context.fillStyle = '#000'
     context.fillRect(0, 0, 500, 500)
     var gameState = engine.stateManager.getState()
     valuesFor(gameState.players).forEach(drawPlayer)
-  })
+  }
 
   function drawPlayer(player){
     context.fillStyle = '#f00'
