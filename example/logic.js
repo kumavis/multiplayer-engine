@@ -1,12 +1,12 @@
 const clone = require('clone')
 
 
-module.exports = applyActions
+module.exports = applyGameLogic
 
-function applyActions(state, actionFrame) {
+function applyGameLogic(state, actionFrame) {
   var newState = clone(state)
     
-  console.log('applyActions:', actionFrame)
+  console.log('applyGameLogic:', actionFrame)
   for (var id in actionFrame.clients) {
     var action = actionFrame.clients[id]
     if (Object.keys(action).length) console.log('action:', id, action)

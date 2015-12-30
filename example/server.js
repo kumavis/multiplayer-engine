@@ -1,31 +1,35 @@
-const extend = require('xtend')
-const Network = require('../lib/network.js')
-const StateManager = require('../lib/state-manager.js')
-const applyActions = require('./actions.js')
-const Engine = require('./engine.js')
+const Engine = require('../lib/engine.js')
+const gameLogic = require('./logic.js')
+const generateName = require('./names.js')
 
 module.exports = Server
 
 function Server(opts){
   const self = this
 
-  var engine = new Engine({
-    isServer: true,
+  var engine = self.engine = new Engine({
+    networkType: 'server',
+    stateTransitionFn: gameLogic,
   })
 
-  // send state snapshot
-  engine.on('broadcast', engine.broadcastSnapshot.bind(engine))
-  // import actionHistories
-  // TODO: filter for only peer
-  engine.messages.on('actionHistory', engine.importActionHistory.bind(engine))
+  engine.on('join', function(peer){
+    var data = {}
+    data[peer.id] = true
+    var action = { join: data }
+    self.addAction(action)
+  })
 
-  engine.start()
+  // // send state snapshot
+  // engine.on('broadcast', engine.broadcastSnapshot.bind(engine))
+  // // import actionHistories
+  // // TODO: filter for only peer
+  // engine.messages.on('actionHistory', engine.importActionHistory.bind(engine))
+
+  // engine.start()
 
 }
 
-function newActionFrame() {
-  return {
-    clients: {}
-  }
+Server.prototype.addAction = function(action) {
+  const self = this
+  self.engine.addAuthoritativeAction('server', action)
 }
-
