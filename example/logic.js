@@ -1,36 +1,66 @@
 const clone = require('clone')
 
 
-module.exports = applyGameLogic
+module.exports = {
+  initial: initialState,
+  run: iterateGameState,
+}
 
-function applyGameLogic(state, actionFrame) {
+
+function initialState() {
+  return {
+    players: {}
+  }
+}
+
+function iterateGameState(state, actionFrame, cb) {
   var newState = clone(state)
-    
-  console.log('applyGameLogic:', actionFrame)
-  for (var id in actionFrame.clients) {
-    var action = actionFrame.clients[id]
-    if (Object.keys(action).length) console.log('action:', id, action)
-    
-    if (action.join) {
-      newState.players[id] = generatePlayer()
-    }
 
-    if (action.leave) {
-      delete newState.players[id]
-    }
-
-    var playerState = newState.players[id]
-    if (playerState) {
-      if (action.moveX) {
-        playerState.x += action.moveX * playerState.speed
-      }
-      if (action.moveY) {
-        playerState.y += action.moveY * playerState.speed
-      }
+  // _debug('peers:', Object.keys(actionFrame))
+  for (var id in actionFrame) {
+    if (id === 'server') {
+      // server
+      handleServerActions(newState, actionFrame, actionFrame.server)
+    } else {
+      // clients
+      var clientActions = actionFrame[id]
+      handleClientActions(newState, actionFrame, newState.players[id], clientActions)  
     }
   }
-  
-  return newState
+    
+  // _debug('oldState:', state)
+  // _debug('actionFrame:', actionFrame)
+  // _debug('newState:', newState)
+  cb(null, newState)
+
+}
+
+function handleServerActions(newState, actionFrame, serverActions){
+  _debug('serverActions:', serverActions)
+  // join
+  for (var id in serverActions.join) {
+    var newClient = serverActions.join[id]
+    newState.players[id] = generatePlayer()
+  }
+
+  // leave
+  for (var id in serverActions.leave) {
+    delete serverActions.join[id]
+  }
+
+}
+
+function handleClientActions(newState, actionFrame, clientState, clientActions){
+  _debug('clientActions:', clientActions)
+
+  if (clientActions.moveX) {
+    clientState.x += clientActions.moveX * clientState.speed
+  }
+  if (clientActions.moveY) {
+    clientState.y += clientActions.moveY * clientState.speed
+  }
+
+  _debug('clientState:', clientState)
 }
 
 // util
@@ -47,3 +77,8 @@ function generatePlayer() {
   }
 }
 
+function _debug(){
+  var args = [].slice.call(arguments)
+  args.unshift('GameLogic -')
+  console.log.apply(console, args)
+}

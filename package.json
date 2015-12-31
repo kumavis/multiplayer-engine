@@ -21,6 +21,7 @@
     "merge": "^1.2.0",
     "rtc-data-stream": "^1.0.2",
     "rtc-quickconnect": "^5.0.0",
+    "semaphore": "^1.0.3",
     "simple-peer": "^5.11.6"
   },
   "devDependencies": {

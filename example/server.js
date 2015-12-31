@@ -9,14 +9,22 @@ function Server(opts){
 
   var engine = self.engine = new Engine({
     networkType: 'server',
-    stateTransitionFn: gameLogic,
+    stateTransitionFn: gameLogic.run,
+    initialState: gameLogic.initial(),
   })
 
-  engine.on('join', function(peer){
+  // engine.once('join', function(){
+    engine.start()
+  // }
+
+  engine.on('join', function(client){
+    // record client join as action
     var data = {}
-    data[peer.id] = true
+    data[client.id] = true
     var action = { join: data }
-    self.addAction(action)
+    self.addActions(action)
+    // send snapshot
+    engine.sendSnapshotToPeer(client)
   })
 
   // // send state snapshot
@@ -29,7 +37,9 @@ function Server(opts){
 
 }
 
-Server.prototype.addAction = function(action) {
+Server.prototype.addActions = function(actions) {
   const self = this
-  self.engine.addAuthoritativeAction('server', action)
+  var actionFrame = {}
+  actionFrame['server'] = actions
+  self.engine.addOptimisticAction(actionFrame)
 }

@@ -10,7 +10,6 @@ test('StateMachine - getState, initial state', function(t){
   })
 })
 
-
 test('StateMachine - getState, putState', function(t){
   var stateMachine = StateMachine(addition)
   stateMachine.putState(0, { value: 10 })
@@ -24,6 +23,14 @@ test('StateMachine - getState, putState', function(t){
       t.end()
     })
   })
+})
+
+test('StateMachine - putState, getCurrentTick', function(t){
+  var stateMachine = StateMachine(addition)
+  stateMachine.putState(100, { value: 10 })
+  var tick = stateMachine.getCurrentTick()
+  t.equal(tick, 100, 'tick is adjusted on state set')
+  t.end()
 })
 
 test('StateMachine - run, actionFrames', function(t){
