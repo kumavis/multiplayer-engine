@@ -24,9 +24,8 @@ function Client(){
     
     // // import stateSnapshots
     // engine.messages.on('stateSnapshot', engine.importSnapshot.bind(engine))
-    // // send action histories
-    // // TODO: filter for only self
-    // engine.on('broadcast', engine.broadcastActionHistory.bind(engine))
+    // send action histories
+    engine.on('broadcast', engine.broadcastClientActionHistory.bind(engine, self.playerId))
 
     // start rendering
     shell.on('render', render)

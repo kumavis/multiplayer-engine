@@ -31,7 +31,7 @@ function Server(opts){
   // engine.on('broadcast', engine.broadcastSnapshot.bind(engine))
   // // import actionHistories
   // // TODO: filter for only peer
-  // engine.messages.on('actionHistory', engine.importActionHistory.bind(engine))
+  engine.network.messages.on('clientActionHistory', engine.importClientActionHistory.bind(engine))
 
   // engine.start()
 

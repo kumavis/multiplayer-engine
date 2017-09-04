@@ -1,6 +1,6 @@
 TODO
 
-
+- [ ] when the shorter op window rolls off, wont trigger re-calc of state
 
 - [ ] send actions, not snapshot
 - [ ] merge actions (if existing, overwrite but dont erase)
