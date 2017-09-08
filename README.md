@@ -1,6 +1,8 @@
 
 # generic low-latency multiplayer networking engine
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/kumavis/multiplayer-engine.svg)](https://greenkeeper.io/)
+
 ### status: don't use this
 
 roughly based on valve's source engine.
